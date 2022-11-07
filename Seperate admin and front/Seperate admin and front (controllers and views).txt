@@ -1,0 +1,100 @@
+--- Laravel DistinctSeparate Views and controllers for Admin or Backend and Frontend
+
+# Step 1: Open config/app.php and add two new keys "app_scope" and "admin_route"
+
+	'app_scope' => 'front',
+	'admin_route' => 'admin',
+
+	--- By default, this value should be “front” for the key “app_scope”.
+
+# Step 2: Open app/Providers/AppServiceProvider.php
+
+	In this file first, use App\Http\Request at the top of the file
+	Add the following code in function boot
+
+	use Illuminate\Http\Request; (at the top after namespace)
+
+	--- Boot function :
+
+	*************************** Code Start ***************************
+
+	public function boot(Request $request)
+    	{
+        $path_array = $request->segments();
+        //dd($path_array);
+        $admin_route = config('app.admin_route');
+        
+        //If URL path is having "admin" then mark the current scope as Admin
+        if (in_array($admin_route, $path_array)){
+            config(['app.app_scope' => 'admin']); 
+        }
+
+        $app_scope = config('app.app_scope');
+
+        //if App scope is admin then define View/Theme folder path
+
+        if ($app_scope == 'admin') {
+            $path = resource_path('admin/views');
+        } else {
+            $path = resource_path('front/views');
+        }
+
+        view()->addLocation($path);
+    	}
+
+*************************** Code Ends ***************************
+
+# Step 3: Open app/Providers/RouteServiceProvider.php file
+	--- add below code in the function “mapWebRoutes”
+
+	*************************** Code Starts ***************************
+
+	$adminScope = config('app.app_scope');
+
+        if($adminScope == 'front'){
+            $this->namespace = 'App\Http\Controllers\FrontControllers';
+        }
+
+        if($adminScope == 'admin'){
+            $this->namespace = 'App\Http\Controllers\AdminControllers';
+        }
+
+	*************************** Code Ends ***************************
+
+# Step 4: Create two folders, Inside controllers folder AdminControllers and FrontControllers, in app\Http\Controllers folder
+
+# Step 5: Testing
+
+	Now go to Routes/web.php file and add following routes, one for admin and one for the front.
+
+	*************************** Code Starts ***************************
+
+	Route::get('test', 'PageController@initContent'); // This will resolve FrontControllers/PageController.php file
+
+	Route::group(['prefix' => 'admin'], function () {
+    	Route::get('dashboard', 'DashboardController@initContent'); //This will resoluve AdminControllers\DashboardController file
+	});
+
+	*************************** Code Ends ***************************
+
+# Step 6: Testing: Next generate Controllers files through Laravel artisan command
+
+	--- Run Below Commands :
+	php artisan make:controller FrontControllers/PageController
+	php artisan make:controller AdminControllers/DashboardController
+
+-----------------------------
+-- Separate views : 
+# 1. create two folders in resource folder 
+	1. front
+	2. admin
+
+* default views folder in resource folder moved to front because this views folder is for front 
+
+******************************** Thank you ********************************
+	
+
+
+
+
+
